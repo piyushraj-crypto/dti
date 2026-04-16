@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greywater Filtration Prototype | Smart Reuse</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo-section">
+                <div class="icon-circle">💧</div>
+                <h1>EcoStream <span>Pro</span></h1>
+            </div>
+            <p class="tagline">"A low-cost, gravity-based system that filters greywater and captures microplastics for safe reuse."</p>
+        </header>
+
+        <main>
+            <!-- Left Section: Visual Schematic -->
+            <section class="visualizer-card glass">
+                <div class="card-header">
+                    <h2>System Schematic</h2>
+                    <div class="status-badge" id="flow-status">IDLE</div>
+                </div>
+                
+                <div class="schematic-container">
+                    <svg viewBox="0 0 600 800" class="schematic-svg" id="main-schematic">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="white" />
+                            </marker>
+                        </defs>
+                        <!-- Washing Machine Source -->
+                        <g id="source-group" transform="translate(50, 50)">
+                            <rect x="0" y="0" width="120" height="150" rx="10" class="component-box source"/>
+                            <circle cx="60" cy="75" r="40" class="drum-circle"/>
+                            <text x="60" y="175" text-anchor="middle" class="label">Greywater Source</text>
+                        </g>
+
+                        <!-- Inlet Pipe -->
+                        <path d="M 170 125 L 250 125 L 250 200" class="pipe" id="pipe-inlet"/>
+                        <path d="M 180 125 L 200 125" class="arrow-head" marker-end="url(#arrow)"/>
+                        
+                        <!-- Microplastic Capture Chamber -->
+                        <g id="mesh-chamber" transform="translate(180, 200)">
+                            <rect x="0" y="0" width="140" height="60" rx="5" class="component-box filter-stage stage-1"/>
+                            <path d="M 0 30 L 140 30" class="mesh-line" stroke-dasharray="5,5" stroke="white" stroke-width="1"/>
+                            <text x="70" y="75" text-anchor="middle" class="label">Step 2: Mesh Trap</text>
+                        </g>
+
+                        <!-- Filtration Unit (Stacked Bottles/Box) -->
+                        <g id="filtration-unit" transform="translate(200, 300)">
+                            <!-- Charcoal Layer -->
+                            <rect x="0" y="0" width="100" height="80" class="filter-layer charcoal"/>
+                            <text x="110" y="45" class="layer-label">1. Charcoal (Odor)</text>
+                            
+                            <!-- Sand Layer -->
+                            <rect x="0" y="80" width="100" height="80" class="filter-layer sand"/>
+                            <text x="110" y="125" class="layer-label">2. Sand (Particulates)</text>
+
+                            <!-- Gravel Layer -->
+                            <rect x="0" y="160" width="100" height="80" class="filter-layer gravel"/>
+                            <text x="110" y="205" class="layer-label">3. Gravel (Large debris)</text>
+
+                            <!-- Labels stage indicator -->
+                            <path d="M -20 0 L -20 240" class="bracket" fill="none" stroke="white" stroke-width="2"/>
+                            <text x="-40" y="120" text-anchor="middle" class="vertical-text">Filtration Unit (3 Layers)</text>
+                        </g>
+
+                        <!-- Outlet Pipe -->
+                        <path d="M 250 540 L 250 600 L 400 600" class="pipe" id="pipe-outlet"/>
+                        <path d="M 320 600 L 340 600" class="arrow-head" marker-end="url(#arrow)"/>
+
+                        <!-- Outlet + Tap -->
+                        <g id="outlet-group" transform="translate(410, 570)">
+                            <rect x="0" y="0" width="100" height="80" rx="5" class="component-box outlet"/>
+                            <path d="M 100 40 L 130 40 L 130 60" class="tap-neck" stroke="white" fill="none" stroke-width="4"/>
+                            <text x="50" y="-15" text-anchor="middle" class="label">Clean Water Outlet</text>
+                            <circle id="water-drop" cx="130" cy="70" r="5" class="drop" opacity="0" fill="var(--accent-water)"/>
+                        </g>
+
+                        <!-- Reuse Area -->
+                        <g id="reuse-group" transform="translate(420, 700)">
+                            <text x="0" y="0" class="reuse-icon">🌱</text>
+                            <text x="50" y="0" class="reuse-icon">🪣</text>
+                            <text x="25" y="30" text-anchor="middle" class="label">Reuse Area</text>
+                        </g>
+                    </svg>
+                </div>
+                
+                <div class="controls">
+                    <button id="btn-start" class="btn primary">Start Filtration</button>
+                    <button id="btn-stop" class="btn secondary">Stop</button>
+                    <button id="btn-reset" class="btn outline">Reset Filter</button>
+                </div>
+            </section>
+
+            <!-- Right Section: Smart Analytics Dashboard -->
+            <section class="dashboard-panel">
+                <div class="stat-card glass animate-up">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3>Water Reused</h3>
+                        <div class="value"><span id="water-value">0.0</span> L</div>
+                    </div>
+                </div>
+
+                <div class="stat-card glass animate-up" style="animation-delay: 0.1s">
+                    <div class="stat-icon">🛠️</div>
+                    <div class="stat-content">
+                        <h3>Filter Status</h3>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="filter-health" style="width: 100%"></div>
+                        </div>
+                        <p id="filter-status-text">Excellent</p>
+                    </div>
+                </div>
+
+                <div class="stat-card glass animate-up" style="animation-delay: 0.2s">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-content">
+                        <h3>Safety Status</h3>
+                        <div class="indicator-group">
+                            <div class="indicator green active" id="ind-safe"></div>
+                            <div class="indicator yellow" id="ind-mod"></div>
+                            <div class="indicator red" id="ind-unsafe"></div>
+                        </div>
+                        <p id="safety-text">Safe for Reuse</p>
+                    </div>
+                </div>
+
+                <div class="app-integration glass animate-up" style="animation-delay: 0.3s">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="app-header">SmartLink App</div>
+                            <div class="app-body">
+                                <div class="app-stat">
+                                    <span>Today:</span>
+                                    <strong id="app-reused">0L</strong>
+                                </div>
+                                <div class="app-stat">
+                                    <span>Status:</span>
+                                    <strong class="text-green" id="app-status">ONLINE</strong>
+                                </div>
+                                <div class="app-alert" id="app-alert">
+                                    Filter Optimal
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="app-info">
+                        <h4>Mobile Sync</h4>
+                        <p>Live data synced to your device.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="flow-steps">
+                <div class="step"><span>1</span> Greywater Input</div>
+                <div class="step"><span>2</span> Microplastic Trap</div>
+                <div class="step"><span>3</span> Tri-Level Filtration</div>
+                <div class="step"><span>4</span> UV/Safety Check</div>
+                <div class="step"><span>5</span> Irrigation/Cleaning</div>
+            </div>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
